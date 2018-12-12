@@ -26,7 +26,6 @@ websocket_handle({text, Msg}, Req, State) ->
   Data = jiffy:decode(Msg, [return_maps]),
   Sender = maps:get(<<"sender">>, Data),
   MsgData = maps:get(<<"msg">>, Data),
-  ebus:pub(?CHATROOM_NAME, {State#state.name, Msg}),
   ebus:pub(?CHATROOM_NAME, {Sender, MsgData}),
   {ok, Req, State};
 websocket_handle(_Data, Req, State) ->

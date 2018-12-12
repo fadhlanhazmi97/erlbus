@@ -58,7 +58,6 @@
 
       function showMessage(data) {
         var date = String(new Date()).split(" GMT")[0]
-        console.log(data.sender)
         
         if (data.sender == username){
           jQuery('#chatContainer').append('<div style="text-align: right">'+'[' + date + '] me(' + data.sender + ') -> ' + data.msg + '</div>');
