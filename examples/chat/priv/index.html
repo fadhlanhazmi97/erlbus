@@ -5,11 +5,11 @@
       <script src="/assets/jquery.js"></script>
       <script type="text/javascript">
         var websocket;
+        var username;
         jQuery(document).ready(init);
 
         function init() {
           jQuery("#roomContainer").hide();  
-          jQuery("#alertContainer").hide();
           jQuery("#connectButton").hide();
           if(!("WebSocket" in window)){  
             showAlert('<span style="color: red;">Your Web Browser doesn\'t support Websockets!</span>');
@@ -19,15 +19,17 @@
         };
 
         function connect() {
-        wsHost = "ws://" + window.location.host + "/websocket";
-        websocket = new WebSocket(wsHost);
-        websocket.onopen = function(evt) { onOpen(evt) }; 
-        websocket.onclose = function(evt) { onClose(evt) }; 
-        websocket.onmessage = function(evt) { onMessage(evt) }; 
-        websocket.onerror = function(evt) { onError(evt) }; 
+          username = jQuery('#username').val();
+          wsHost = "ws://" + window.location.host + "/websocket";
+          websocket = new WebSocket(wsHost);
+          websocket.onopen = function(evt) { onOpen(evt) }; 
+          websocket.onclose = function(evt) { onClose(evt) }; 
+          websocket.onmessage = function(evt) { onMessage(evt) }; 
+          websocket.onerror = function(evt) { onError(evt) }; 
       }; 
 
       function onOpen(evt) { 
+        jQuery('#alertContainer').fadeOut('slow');
         jQuery('#roomContainer').fadeIn('slow');
       };  
 
@@ -47,7 +49,7 @@
       function sendMessage() {
         if(websocket.readyState == websocket.OPEN){
           var txt = jQuery("#textToSend").val();
-          websocket.send(txt);
+          websocket.send(JSON.stringify({sender: username, msg: txt}));
           jQuery("#textToSend").val("");
         } else {
            showAlert('<span style="color: red;">ERROR: websocket is not ready</span>');
@@ -55,7 +57,15 @@
       };
 
       function showMessage(data) {
-        jQuery('#chatContainer').append('<div>' + data.sender + ' -> ' + data.msg + '</div>');
+        var date = String(new Date()).split(" GMT")[0]
+        console.log(data.sender)
+        
+        if (data.sender == username){
+          jQuery('#chatContainer').append('<div style="text-align: right">'+'[' + date + '] me(' + data.sender + ') -> ' + data.msg + '</div>');
+        }
+        else{
+          jQuery('#chatContainer').append('<div>'+'[' + date + '] ' + data.sender + ' -> ' + data.msg + '</div>');
+        }
       };
 
       function showAlert(txt) {
@@ -72,8 +82,14 @@
       </style>
   </head>
   <body>
-    <div id="alertContainer"></div>
-    <input id="connectButton" type="button" value="Join the Chat Room!" onclick="connect();"/>
+    <div id="alertContainer">
+      <form onsubmit="connect(); return false;">
+        <label>What is your name? </label>
+        <input id="username" type="text"/>
+        <br>
+        <input id="connectButton" type="button" value="Join the Chat Room!" style="margin-left:247.9px; margin-top:9px" onclick="connect();"/>
+      </form>
+    </div>
 
     <div id="roomContainer">
       <div id="chatContainer"></div>
